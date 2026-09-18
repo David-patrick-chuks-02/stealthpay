@@ -4,6 +4,8 @@ Private invoices. Not on-chain anonymity. StealthPay is a Nimiq Pay mini app for
 
 The payer sees **name or organization, service rendered, and amount**. The recipient wallet stays off the invoice page. Settlement is a normal NIM (or Polygon USDT) transfer. There is no mixer, no shielded pool, and no custodial hot wallet.
 
+**Live:** https://stealthpay.up.railway.app
+
 ## What it does
 
 - Generate a NIM or USDT invoice (individual or organization, service rendered, amount)
@@ -77,6 +79,8 @@ npm run build
 npx prisma migrate deploy
 npm start
 ```
+
+Live deployment: https://stealthpay.up.railway.app
 
 Railway (and similar) should provide `PORT` and `DATABASE_URL`. The start command runs `prisma migrate deploy` then `next start`.
 
