@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# StealthPay
 
-## Getting Started
+Private invoices. Not on-chain anonymity. StealthPay is a Nimiq Pay mini app for contractors who need to get paid without putting a public name on the invoice.
 
-First, run the development server:
+The payer sees **amount only**. Settlement is a normal NIM (or Polygon USDT) transfer to the recipient wallet. There is no mixer, no shielded pool, and no custodial hot wallet.
+
+## What it does
+
+- Generate a NIM or USDT invoice (amount-only)
+- Share a QR / link; checkout is one confirmation
+- Issue a read-only viewing key for accountants (no send)
+- Audit ledger of invoices for that key
+- Honest copy: private invoices, not zk / not a mixer
+
+## Stack
+
+- Next.js 16 (App Router) + TypeScript
+- Prisma + PostgreSQL (schema `stealthpay` on a shared database)
+- `@nimiq/mini-app-sdk` for NIM + `window.ethereum` / viem for USDT on Polygon (`0x89`, 6 decimals)
+- Tailwind v4, Archivo Black + IBM Plex Mono + Mulish
+- Official Nimiq dark canvas (`#1F2348` radial) and gold CTAs (`#E9B213`)
+- Phosphor icons, mobile-first `min-h-[100dvh]`, 375px WebView
+
+## Shared database (no conflicts with Payrun)
+
+Both mini apps can use **one** Supabase (or any Postgres) project.
+
+| App        | Schema        | Tables |
+|------------|---------------|--------|
+| Payrun     | `payrun`      | `handles`, `roster_entries`, `pay_cycles`, `pay_items` |
+| StealthPay | `stealthpay`  | `businesses`, `invoices`, `viewing_grants`, `settlements` |
+
+Use the **direct** connection string (port `5432`), not the transaction pooler (`6543`). Set the same `DATABASE_URL` on both apps.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env
+# DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/postgres?sslmode=require"
+npx prisma migrate deploy
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+StealthPay’s migration is named `20260918120001_stealthpay_init` so it will not collide with Payrun’s row in `_prisma_migrations`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Develop
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+cd stealthpay
+npm install
+cp .env.example .env
+npx prisma migrate deploy
+npm run dev
+```
 
-## Learn More
+Dev server: `http://localhost:3011` (binds `0.0.0.0` for LAN). Use the Network URL, not `localhost`, from a phone.
 
-To learn more about Next.js, take a look at the following resources:
+1. Phone and computer on the same Wi-Fi.
+2. Open Nimiq Pay → Mini Apps → paste `http://192.168.x.x:3011`.
+3. If the WebView cannot hydrate, add the LAN host to `allowedDevOrigins` in `next.config.ts`.
+4. NIM testing: long-press Settings 10 seconds, switch to Testnet.
+5. USDT testing uses Polygon mainnet. Do not send real funds unless you intend to.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Surfaces
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Route | Purpose |
+|-------|---------|
+| `/` | Intro |
+| `/invoice` | Generate NIM or USDT invoice |
+| `/invoice/[id]` | QR + share (amount only) |
+| `/pay` | Paste an invoice id |
+| `/pay/[id]` | One-tap checkout |
+| `/audit` | Issue a viewing key |
+| `/audit/view/[token]` | Read-only ledger |
 
-## Deploy on Vercel
+## Production
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run build
+npx prisma migrate deploy
+npm start
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Railway (and similar) should provide `PORT` and `DATABASE_URL`. The start command runs `prisma migrate deploy` then `next start`.
+
+## Honest limits
+
+Funds go to the recipient wallet. There is no withdraw-from-pool flow. A viewing key can read the invoice ledger; it cannot sign or send.

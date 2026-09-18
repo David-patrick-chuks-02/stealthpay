@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["stealthpay"]
+}
+
+model Business {
+  id            String          @id @default(cuid())
+  nimiqAddress  String          @unique
+  ethAddress    String?
+  createdAt     DateTime        @default(now())
+  invoices      Invoice[]
+  viewingGrants ViewingGrant[]
+
+  @@map("businesses")
+  @@schema("stealthpay")
+}
+
+model Invoice {
+  id                String       @id @default(cuid())
+  publicId          String       @unique
+  businessId        String
+  business          Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  vaultCommitment   String       @unique
+  invoiceSecretHash String
+  asset             String
+  amountMinor       String
+  recipientNim      String
+  recipientEth      String?
+  status            String
+  createdAt         DateTime     @default(now())
+  settlements       Settlement[]
+
+  @@map("invoices")
+  @@schema("stealthpay")
+}
+
+model ViewingGrant {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  tokenHash  String   @unique
+  label      String?
+  createdAt  DateTime @default(now())
+
+  @@map("viewing_grants")
+  @@schema("stealthpay")
+}
+
+model Settlement {
+  id        String   @id @default(cuid())
+  invoiceId String
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  txHash    String
+  asset     String
+  createdAt DateTime @default(now())
+
+  @@map("settlements")
+  @@schema("stealthpay")
+}
