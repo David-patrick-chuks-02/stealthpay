@@ -1,6 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import { sha256Hex, shortIdFromCommitment } from "@/lib/crypto";
 import { jsonError, requireNimAddress } from "@/lib/http";
+import {
+  isPartyType,
+  parsePartyName,
+  parseServiceRendered,
+  type PartyType,
+} from "@/lib/invoice-fields";
 import { formatAmount, isAsset, parseAmountMinor } from "@/lib/money";
 import { randomId } from "@/lib/uuid";
 import type { InvoiceView } from "@/lib/stealth";
@@ -10,6 +16,9 @@ function toView(invoice: {
   publicId: string;
   asset: string;
   amountMinor: string;
+  partyType?: string | null;
+  partyName?: string | null;
+  serviceRendered?: string | null;
   status: string;
   vaultCommitment: string;
   recipientNim: string;
@@ -17,12 +26,16 @@ function toView(invoice: {
   createdAt: Date;
 }): InvoiceView {
   const asset = invoice.asset === "USDT" ? "USDT" : "NIM";
+  const partyType: PartyType = invoice.partyType === "organization" ? "organization" : "individual";
   return {
     id: invoice.id,
     publicId: invoice.publicId,
     asset,
     amountMinor: invoice.amountMinor,
     amountLabel: formatAmount(asset, invoice.amountMinor),
+    partyType,
+    partyName: invoice.partyName ?? "",
+    serviceRendered: invoice.serviceRendered ?? "",
     status: invoice.status,
     vaultCommitment: invoice.vaultCommitment,
     recipientNim: invoice.recipientNim,
@@ -52,6 +65,9 @@ export async function POST(request: Request) {
     const body = (await request.json()) as {
       amount?: string;
       asset?: string;
+      partyType?: string;
+      partyName?: string;
+      serviceRendered?: string;
       ethAddress?: string;
       message?: string;
       signature?: string;
@@ -61,6 +77,11 @@ export async function POST(request: Request) {
       return jsonError("Asset must be NIM or USDT.");
     }
     const asset = body.asset as "NIM" | "USDT";
+    if (!isPartyType(body.partyType ?? "")) {
+      return jsonError("Choose individual or organization.");
+    }
+    const partyName = parsePartyName(body.partyName ?? "");
+    const serviceRendered = parseServiceRendered(body.serviceRendered ?? "");
     if (body.message !== `stealthpay:issue:${owner}`) {
       return jsonError("Sign the invoice issuance message.");
     }
@@ -91,6 +112,9 @@ export async function POST(request: Request) {
         invoiceSecretHash: sha256Hex(secret),
         asset,
         amountMinor,
+        partyType: body.partyType,
+        partyName,
+        serviceRendered,
         recipientNim: owner,
         recipientEth: asset === "USDT" ? body.ethAddress ?? null : business.ethAddress,
         status: "open",

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { jsonError } from "@/lib/http";
 import { formatAmount } from "@/lib/money";
+import type { PartyType } from "@/lib/invoice-fields";
 
 export async function GET(
   _request: Request,
@@ -11,11 +12,15 @@ export async function GET(
     const invoice = await prisma.invoice.findUnique({ where: { publicId } });
     if (!invoice) return jsonError("Invoice not found.", 404);
     const asset = invoice.asset === "USDT" ? "USDT" : "NIM";
+    const partyType: PartyType = invoice.partyType === "organization" ? "organization" : "individual";
     return Response.json({
       publicId: invoice.publicId,
       asset,
       amountMinor: invoice.amountMinor,
       amountLabel: formatAmount(asset, invoice.amountMinor),
+      partyType,
+      partyName: invoice.partyName,
+      serviceRendered: invoice.serviceRendered,
       status: invoice.status,
       recipientNim: invoice.recipientNim,
       recipientEth: invoice.recipientEth,

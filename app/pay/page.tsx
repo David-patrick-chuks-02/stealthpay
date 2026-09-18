@@ -16,7 +16,7 @@ export default function PayIndexPage() {
   }
 
   return (
-    <AppShell kicker="Pay" title="Invoice" subtitle="Paste an invoice id. No name on the checkout.">
+    <AppShell kicker="Pay" title="Invoice" subtitle="Paste an invoice id to see name, service, and amount.">
       <form onSubmit={onOpen} className="nq-card flex flex-col gap-3 p-4">
         <input
           value={code}

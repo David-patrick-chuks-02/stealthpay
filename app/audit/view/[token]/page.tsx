@@ -8,7 +8,14 @@ import { useEffect, useState } from "react";
 export default function AuditViewPage() {
   const params = useParams<{ token: string }>();
   const [rows, setRows] = useState<
-    Array<{ publicId: string; amountLabel: string; status: string; createdAt: string }>
+    Array<{
+      publicId: string;
+      amountLabel: string;
+      partyName: string;
+      serviceRendered: string;
+      status: string;
+      createdAt: string;
+    }>
   >([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,16 +31,16 @@ export default function AuditViewPage() {
       {rows.length === 0 && !error ? <p className="text-mute">[ NO INVOICES ]</p> : null}
       <ul>
         {rows.map((row) => (
-          <li key={row.publicId} className="flex min-h-[64px] min-w-0 items-baseline justify-between gap-3 border-b border-hairline py-4">
-            <div className="min-w-0">
+          <li key={row.publicId} className="min-w-0 border-b border-hairline py-4">
+            <p className="break-words text-[14px] leading-5 text-ink">{row.serviceRendered || row.publicId}</p>
+            <p className="mt-1 break-words font-mono text-[12px] text-mute">{row.partyName || "—"}</p>
+            <div className="mt-2 flex min-h-[32px] items-baseline justify-between gap-3">
               <p className="break-all font-display text-[24px] text-olive">{row.amountLabel}</p>
               <p className={`text-[11px] uppercase tracking-[0.12em] ${row.status === "open" ? "text-copper" : "text-green"}`}>
                 {row.status}
               </p>
             </div>
-            <p className="font-mono text-[12px] text-mute">
-              {row.createdAt.slice(0, 16).replace("T", " ")}
-            </p>
+            <p className="mt-1 font-mono text-[12px] text-mute">{row.createdAt.slice(0, 16).replace("T", " ")}</p>
           </li>
         ))}
       </ul>

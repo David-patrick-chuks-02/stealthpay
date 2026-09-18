@@ -2,11 +2,11 @@
 
 Private invoices. Not on-chain anonymity. StealthPay is a Nimiq Pay mini app for contractors who need to get paid without putting a public name on the invoice.
 
-The payer sees **amount only**. Settlement is a normal NIM (or Polygon USDT) transfer to the recipient wallet. There is no mixer, no shielded pool, and no custodial hot wallet.
+The payer sees **name or organization, service rendered, and amount**. The recipient wallet stays off the invoice page. Settlement is a normal NIM (or Polygon USDT) transfer. There is no mixer, no shielded pool, and no custodial hot wallet.
 
 ## What it does
 
-- Generate a NIM or USDT invoice (amount-only)
+- Generate a NIM or USDT invoice (individual or organization, service rendered, amount)
 - Share a QR / link; checkout is one confirmation
 - Issue a read-only viewing key for accountants (no send)
 - Audit ledger of invoices for that key

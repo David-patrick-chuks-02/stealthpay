@@ -34,6 +34,9 @@ export async function GET(
           publicId: invoice.publicId,
           asset,
           amountLabel: formatAmount(asset, invoice.amountMinor),
+          partyType: invoice.partyType === "organization" ? "organization" : "individual",
+          partyName: invoice.partyName,
+          serviceRendered: invoice.serviceRendered,
           status: invoice.status,
           createdAt: invoice.createdAt.toISOString(),
         };

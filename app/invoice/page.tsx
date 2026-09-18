@@ -4,13 +4,20 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
 import { isUserRejection, useWallet } from "@/components/WalletProvider";
 import { createInvoice, listInvoices } from "@/lib/client-api";
+import type { PartyType } from "@/lib/invoice-fields";
 import type { InvoiceView } from "@/lib/stealth";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 
+const fieldClass =
+  "mt-2 w-full min-w-0 rounded-[8px] border border-hairline bg-panel px-4 py-3 font-mono text-[15px] text-ink outline-none focus:ring-2 focus:ring-olive/40";
+
 export default function InvoicePage() {
   const wallet = useWallet();
   const router = useRouter();
+  const [partyType, setPartyType] = useState<PartyType>("individual");
+  const [partyName, setPartyName] = useState("");
+  const [serviceRendered, setServiceRendered] = useState("");
   const [amount, setAmount] = useState("500");
   const [asset, setAsset] = useState<"NIM" | "USDT">("NIM");
   const [invoices, setInvoices] = useState<InvoiceView[]>([]);
@@ -47,6 +54,9 @@ export default function InvoicePage() {
       const created = await createInvoice(nim, {
         amount,
         asset,
+        partyType,
+        partyName,
+        serviceRendered,
         ethAddress: eth,
         message,
         signature: signed.signature,
@@ -67,8 +77,56 @@ export default function InvoicePage() {
   }
 
   return (
-    <AppShell kicker="Private invoice" title="Generate" subtitle="Payer sees amount only. Your name stays off the invoice.">
+    <AppShell
+      kicker="Private invoice"
+      title="Generate"
+      subtitle="Name or organization, service rendered, and amount. Wallet stays off the invoice."
+    >
       <form onSubmit={onGenerate} className="nq-card flex flex-col gap-5 p-4">
+        <div>
+          <p className="font-mono text-[12px] uppercase tracking-[0.14em] text-mute">From</p>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            {([
+              ["individual", "Individual"],
+              ["organization", "Organization"],
+            ] as const).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setPartyType(value)}
+                className={`min-h-[52px] rounded-[8px] border font-mono text-[13px] uppercase ${
+                  partyType === value ? "nq-btn border-olive text-[#1F2348]" : "border-hairline text-ink"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <label className="font-mono text-[12px] uppercase tracking-[0.14em] text-mute">
+          {partyType === "organization" ? "Organization name" : "Individual name"}
+          <input
+            value={partyName}
+            onChange={(event) => setPartyName(event.target.value)}
+            autoComplete="organization"
+            maxLength={80}
+            required
+            placeholder={partyType === "organization" ? "Northwind Studio" : "Alex Rivera"}
+            className={fieldClass}
+          />
+        </label>
+        <label className="font-mono text-[12px] uppercase tracking-[0.14em] text-mute">
+          Service rendered
+          <textarea
+            value={serviceRendered}
+            onChange={(event) => setServiceRendered(event.target.value)}
+            required
+            maxLength={160}
+            rows={3}
+            placeholder="September product design retainer"
+            className={`${fieldClass} min-h-[88px] resize-none leading-6`}
+          />
+        </label>
         <label className="font-mono text-[12px] uppercase tracking-[0.14em] text-mute">
           Amount
           <input
@@ -106,11 +164,18 @@ export default function InvoicePage() {
             <li key={invoice.id}>
               <button
                 type="button"
-                className="flex min-h-[56px] w-full min-w-0 items-center justify-between gap-3 py-4 text-left"
+                className="flex min-h-[64px] w-full min-w-0 items-start justify-between gap-3 py-4 text-left"
                 onClick={() => router.push(`/invoice/${invoice.publicId}`)}
               >
-                <span className="min-w-0 break-all font-display text-[22px] text-olive">{invoice.amountLabel}</span>
-                <span className={`shrink-0 ${invoice.status === "open" ? "text-copper" : "text-green"}`}>
+                <span className="min-w-0">
+                  <span className="block break-words text-[14px] leading-5 text-ink">
+                    {invoice.serviceRendered || invoice.partyName || invoice.publicId}
+                  </span>
+                  <span className="mt-1 block break-all font-display text-[20px] text-olive">
+                    {invoice.amountLabel}
+                  </span>
+                </span>
+                <span className={`shrink-0 pt-1 ${invoice.status === "open" ? "text-copper" : "text-green"}`}>
                   {invoice.status.toUpperCase()}
                 </span>
               </button>

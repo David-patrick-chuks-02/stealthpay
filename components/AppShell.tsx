@@ -36,7 +36,7 @@ export function AppShell({
         </h1>
         {subtitle ? <p className="mt-3 max-w-[34ch] font-mono text-[13px] leading-5 text-mute">{subtitle}</p> : null}
       </header>
-      <main className="fade-up min-w-0 flex-1 px-5 pb-8 pt-4" style={{ animationDelay: "80ms" }}>
+      <main className="fade-up min-w-0 flex-1 px-5 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-4" style={{ animationDelay: "80ms" }}>
         {children}
       </main>
       <BottomNav />

@@ -1,3 +1,5 @@
+import type { PartyType } from "@/lib/invoice-fields";
+
 /**
  * Application-layer registry that mirrors the brief's IStealthPay matrix.
  * This is not a live Solidity contract and not a shielded pool.
@@ -14,6 +16,9 @@ export type InvoiceView = {
   asset: "NIM" | "USDT";
   amountMinor: string;
   amountLabel: string;
+  partyType: PartyType;
+  partyName: string;
+  serviceRendered: string;
   status: string;
   vaultCommitment: string;
   recipientNim: string;

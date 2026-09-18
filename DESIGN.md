@@ -6,7 +6,7 @@ Dials: VARIANCE 4 / MOTION 3 / DENSITY 6.
 
 ## 1. Visual Theme & Atmosphere
 
-A classified invoice vault on Nimiq blue. Gold hex lockup, gold radial CTAs, hairline frames, corner ticks, amount-only checkout. Premium and readable — not neon cyberpunk, not a mixer. Copy must say “private invoices”, never “on-chain anonymity”.
+A classified invoice vault on Nimiq blue. Gold hex lockup, gold radial CTAs, hairline frames, corner ticks. Generate captures individual or organization name, service rendered, and amount. Wallet address stays off the invoice page. Premium and readable — not neon cyberpunk, not a mixer. Copy must say “private invoices”, never “on-chain anonymity”.
 
 ## 2. Color Palette & Roles
 

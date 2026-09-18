@@ -2,6 +2,7 @@
 
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
+import { InvoiceSummary } from "@/components/InvoiceSummary";
 import { isUserRejection, useWallet } from "@/components/WalletProvider";
 import { fetchPublicInvoice, settleInvoice } from "@/lib/client-api";
 import { nimLuna } from "@/lib/money";
@@ -63,13 +64,22 @@ export default function CheckoutPage() {
   }
 
   return (
-    <AppShell kicker="Pay invoice" title={invoice?.amountLabel ?? "…"} subtitle="One confirmation. Amount only.">
+    <AppShell
+      kicker="Pay invoice"
+      title={invoice?.amountLabel ?? "…"}
+      subtitle="Confirm who and what this is for, then pay once."
+    >
       {invoice ? (
         <>
-          <p className="font-mono text-[12px] uppercase tracking-[0.14em] text-mute">
+          <InvoiceSummary
+            partyType={invoice.partyType}
+            partyName={invoice.partyName}
+            serviceRendered={invoice.serviceRendered}
+            amountLabel={invoice.amountLabel}
+          />
+          <p className="mt-5 font-mono text-[12px] uppercase tracking-[0.14em] text-mute">
             Invoice {invoice.publicId} · {invoice.asset}
           </p>
-          <p className="mt-4 font-mono text-[13px] text-mute">{invoice.memo}</p>
           <p className={`mt-2 font-mono text-[12px] ${invoice.status === "settled" ? "text-green" : "text-copper"}`}>
             {invoice.status === "settled" ? "SETTLED" : "OPEN"}
           </p>

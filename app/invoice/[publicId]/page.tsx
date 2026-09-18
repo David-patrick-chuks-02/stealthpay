@@ -2,14 +2,14 @@
 
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
+import { InvoiceSummary } from "@/components/InvoiceSummary";
 import { fetchPublicInvoice, fetchQr } from "@/lib/client-api";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function ShareInvoicePage() {
   const params = useParams<{ publicId: string }>();
-  const [label, setLabel] = useState("");
-  const [status, setStatus] = useState("");
+  const [invoice, setInvoice] = useState<Awaited<ReturnType<typeof fetchPublicInvoice>> | null>(null);
   const [qr, setQr] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -19,9 +19,8 @@ export default function ShareInvoicePage() {
     if (!publicId) return;
     (async () => {
       try {
-        const invoice = await fetchPublicInvoice(publicId);
-        setLabel(invoice.amountLabel);
-        setStatus(invoice.status);
+        const next = await fetchPublicInvoice(publicId);
+        setInvoice(next);
         const shareUrl = `${window.location.origin}/pay/${publicId}`;
         setQr(await fetchQr(shareUrl));
       } catch (err) {
@@ -39,14 +38,22 @@ export default function ShareInvoicePage() {
   async function share() {
     const shareUrl = `${window.location.origin}/pay/${params.publicId}`;
     if (navigator.share) {
-      await navigator.share({ title: "StealthPay invoice", url: shareUrl });
+      await navigator.share({
+        title: invoice?.serviceRendered || "StealthPay invoice",
+        text: invoice ? `${invoice.serviceRendered} · ${invoice.amountLabel}` : undefined,
+        url: shareUrl,
+      });
       return;
     }
     await copyLink();
   }
 
   return (
-    <AppShell kicker="Share / QR" title={params.publicId} subtitle="Amount only. Private invoice. Not on-chain anonymity.">
+    <AppShell
+      kicker="Share / QR"
+      title={params.publicId}
+      subtitle="Service and amount. Wallet address stays off this page."
+    >
       {qr ? (
         <div className="rounded-[8px] border-2 border-olive bg-white p-4">
           <img src={qr} alt="Invoice QR code" className="mx-auto h-auto w-full max-w-[280px]" />
@@ -54,8 +61,21 @@ export default function ShareInvoicePage() {
       ) : (
         <div className="h-[280px] rounded-[8px] border border-hairline bg-panel" />
       )}
-      <p className="mt-6 break-all font-display text-[clamp(2rem,12vw,3rem)] leading-none text-olive">{label || "—"}</p>
-      <p className={`mt-2 font-mono text-[12px] uppercase tracking-[0.14em] ${status === "settled" ? "text-green" : "text-copper"}`}>{status}</p>
+      {invoice ? (
+        <div className="mt-6">
+          <InvoiceSummary
+            partyType={invoice.partyType}
+            partyName={invoice.partyName}
+            serviceRendered={invoice.serviceRendered}
+            amountLabel={invoice.amountLabel}
+          />
+        </div>
+      ) : null}
+      <p
+        className={`mt-4 font-mono text-[12px] uppercase tracking-[0.14em] ${invoice?.status === "settled" ? "text-green" : "text-copper"}`}
+      >
+        {invoice?.status || "…"}
+      </p>
       <div className="mt-6 flex flex-col gap-3">
         <Button type="button" variant="secondary" onClick={copyLink}>
           {copied ? "Copied" : "Copy link"}

@@ -29,6 +29,9 @@ model Invoice {
   invoiceSecretHash String
   asset             String
   amountMinor       String
+  partyType         String   @default("individual")
+  partyName         String   @default("")
+  serviceRendered   String   @default("")
   recipientNim      String
   recipientEth      String?
   status            String

@@ -18,6 +18,9 @@ export async function createInvoice(
   input: {
     amount: string;
     asset: "NIM" | "USDT";
+    partyType: "individual" | "organization";
+    partyName: string;
+    serviceRendered: string;
     ethAddress?: string;
     message: string;
     signature: string;
@@ -42,6 +45,9 @@ export async function fetchPublicInvoice(publicId: string) {
     asset: "NIM" | "USDT";
     amountMinor: string;
     amountLabel: string;
+    partyType: "individual" | "organization";
+    partyName: string;
+    serviceRendered: string;
     status: string;
     recipientNim: string;
     recipientEth: string | null;
@@ -73,6 +79,9 @@ export async function fetchAudit(token: string) {
       publicId: string;
       asset: string;
       amountLabel: string;
+      partyType: string;
+      partyName: string;
+      serviceRendered: string;
       status: string;
       createdAt: string;
     }>;

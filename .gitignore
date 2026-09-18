@@ -34,6 +34,10 @@ yarn-error.log*
 .env*
 !.env.example
 
+# local wallet secrets
+*wallets*.json
+nimiq-mainnet-wallets.json
+
 # prisma
 /prisma/*.db
 /prisma/*.db-journal
